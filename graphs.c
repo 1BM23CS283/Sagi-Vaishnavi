@@ -1,75 +1,87 @@
 #include <stdio.h>
 #include <stdlib.h>
-struct Node {
-    int data;
-    struct Node *left, *right;
+#include <stdbool.h>
+
+#define MAX 20  
+struct Queue {
+    int items[MAX];
+    int front;
+    int rear;
 };
-struct Node* createNode(int data) {
-    struct Node *newNode = (struct Node*)malloc(sizeof(struct Node));
-    newNode->data = data;
-    newNode->left = newNode->right = NULL;
-    return newNode;
+void initQueue(struct Queue* q) {
+    q->front = -1;
+    q->rear = -1;
 }
-struct Node* insert(struct Node* root, int data) {
-    if (root == NULL) {
-        return createNode(data);
-    }
-    if (data < root->data) {
-        root->left = insert(root->left, data);
-    } else if (data > root->data) {
-        root->right = insert(root->right, data);
-    }
-    return root;
+bool isEmpty(struct Queue* q) {
+    return (q->front == -1);
 }
-void inorder(struct Node* root) {
-    if (root == NULL) {
+bool isFull(struct Queue* q) {
+    return (q->rear == MAX - 1);
+}
+void enqueue(struct Queue* q, int value) {
+    if (isFull(q)) {
+        printf("Queue is full\n");
         return;
     }
-    inorder(root->left);
-    printf("%d ", root->data);
-    inorder(root->right);
-}
-void preorder(struct Node* root) {
-    if (root == NULL) {
-        return;
+    if (q->front == -1) {
+        q->front = 0;
     }
-    printf("%d ", root->data);
-    preorder(root->left);
-    preorder(root->right);
+    q->rear++;
+    q->items[q->rear] = value;
 }
-void postorder(struct Node* root) {
-    if (root == NULL) {
-        return;
+int dequeue(struct Queue* q) {
+    if (isEmpty(q)) {
+        printf("Queue is empty\n");
+        return -1;
     }
-    postorder(root->left);
-    postorder(root->right);
-    printf("%d ", root->data);
+    int value = q->items[q->front];
+    q->front++;
+    if (q->front > q->rear) {
+        q->front = q->rear = -1;
+    }
+    return value;
 }
-void display(struct Node* root) {
-    printf("In-order traversal: ");
-    inorder(root);
-    printf("\n");
-   
-    printf("Pre-order traversal: ");
-    preorder(root);
-    printf("\n");
-   
-    printf("Post-order traversal: ");
-    postorder(root);
-    printf("\n");
-}
-int main() {
-    struct Node* root = NULL;
-    int data;
-    int choice;
-    while (1) {
-        printf("Enter a number to insert into the BST (0 to stop): ");
-        scanf("%d", &data);
-        if (data == 0) {
-            break;
+void bfs(int graph[MAX][MAX], int start, int vertices) {
+    bool visited[MAX] = {false};  
+    struct Queue q;
+    initQueue(&q);
+    visited[start] = true;
+    enqueue(&q, start);
+    printf("BFS Traversal starting from vertex %d: ", start);
+    while (!isEmpty(&q)) {
+        int current = dequeue(&q);
+        printf("%d ", current);
+        for (int i = 0; i < vertices; i++) {
+            if (graph[current][i] == 1 && !visited[i]) {
+                visited[i] = true;
+                enqueue(&q, i);
+            }
         }
-        root = insert(root, data);
     }
-    display(root);
+    printf("\n");
+}
+
+
+int main() {
+    int graph[MAX][MAX], vertices, edges, u, v, start;
+    printf("Enter the number of vertices: ");
+    scanf("%d", &vertices);
+    for (int i = 0; i < vertices; i++) {
+        for (int j = 0; j < vertices; j++) {
+            graph[i][j] = 0;
+        }
+    }
+    printf("Enter the number of edges: ");
+    scanf("%d", &edges);
+    printf("Enter the edges (u v) where there is an edge between u and v:\n");
+    for (int i = 0; i < edges; i++) {
+        scanf("%d %d", &u, &v);
+        graph[u][v] = 1;
+        graph[v][u] = 1; // Since the graph is undirected
+    }
+    printf("Enter the starting vertex for BFS: ");
+    scanf("%d", &start);
+    bfs(graph, start, vertices);
+
     return 0;
 }
